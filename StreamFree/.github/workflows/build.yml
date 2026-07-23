@@ -5,7 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:   # manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   build:
@@ -25,7 +25,23 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # ── 3. Gradle cache (speeds up repeat builds) ──────────────────────────
+      # ── 3. Download gradle-wrapper.jar (binary — not stored in repo) ───────
+      - name: Download gradle-wrapper.jar
+        run: |
+          mkdir -p gradle/wrapper
+          curl -fsSL \
+            "https://raw.githubusercontent.com/gradle/gradle/v8.11.1/gradle/wrapper/gradle-wrapper.jar" \
+            -o gradle/wrapper/gradle-wrapper.jar || \
+          curl -fsSL \
+            "https://github.com/gradle/gradle/raw/v8.11.1/gradle/wrapper/gradle-wrapper.jar" \
+            -o gradle/wrapper/gradle-wrapper.jar || \
+          (
+            # Fallback: bootstrap via system gradle
+            sudo apt-get install -y gradle -q 2>/dev/null || true
+            gradle wrapper --gradle-version 8.11.1 --distribution-type bin 2>/dev/null || true
+          )
+
+      # ── 4. Gradle cache ────────────────────────────────────────────────────
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
@@ -33,31 +49,28 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
+          restore-keys: gradle-${{ runner.os }}-
 
-      # ── 4. Grant execute permission to gradlew ─────────────────────────────
+      # ── 5. Make gradlew executable ─────────────────────────────────────────
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      # ── 5. Build Debug APK ─────────────────────────────────────────────────
+      # ── 6. Build Debug APK ─────────────────────────────────────────────────
       - name: Build Debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      # ── 6. Rename APK with commit SHA for traceability ────────────────────
+      # ── 7. Rename APK ──────────────────────────────────────────────────────
       - name: Rename APK
         run: |
           mkdir -p release
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           cp app/build/outputs/apk/debug/app-debug.apk \
              release/StreamFree-debug-${SHORT_SHA}.apk
-          # Also keep a fixed name so the README badge always points to same filename
           cp release/StreamFree-debug-${SHORT_SHA}.apk \
              release/StreamFree-latest.apk
-          echo "APK_PATH=release/StreamFree-latest.apk" >> $GITHUB_ENV
           echo "APK_NAME=StreamFree-debug-${SHORT_SHA}.apk" >> $GITHUB_ENV
 
-      # ── 7. Upload as workflow artifact (90-day retention) ─────────────────
+      # ── 8. Upload artifact (90-day retention) ─────────────────────────────
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -65,16 +78,15 @@ jobs:
           path: release/StreamFree-latest.apk
           retention-days: 90
 
-      # ── 8. Delete old "latest" release & tag so we can recreate ──────────
-      - name: Delete old latest release (if exists)
+      # ── 9. Delete old "latest" release ────────────────────────────────────
+      - name: Delete old latest release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release delete latest --cleanup-tag --yes || true
+        run: gh release delete latest --cleanup-tag --yes || true
 
-      # ── 9. Create / update the "latest" GitHub Release ────────────────────
-      - name: Create GitHub Release with APK
+      # ── 10. Create new "latest" GitHub Release ────────────────────────────
+      - name: Create GitHub Release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -83,19 +95,15 @@ jobs:
           TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
           gh release create latest \
             --title "StreamFree Latest Build" \
-            --notes "🤖 **Auto-built from commit \`${SHORT_SHA}\`** on ${TIMESTAMP}
-
-### What's inside
-- **StreamFree-latest.apk** — always the most recent debug build
-- Built with Gradle on Ubuntu, JDK 17
+            --notes "🤖 **Auto-built from commit \`${SHORT_SHA}\`** — ${TIMESTAMP}
 
 ### Install
-1. Download **StreamFree-latest.apk** below
-2. Enable *Install from unknown sources* on your device
-3. Open the APK to install
+1. Download **StreamFree-latest.apk** below ⬇️
+2. Phone → Settings → **Unknown sources** → ON
+3. Open APK → Install
 
 ### Ad-blocking
-Streams via Innertube ANDROID client — ad fields in the response are silently ignored.
+Innertube ANDROID client — \`adPlacements\`/\`adSlots\` silently ignored.
 SponsorBlock (sponsor/intro/outro skip) included." \
             --prerelease \
             release/StreamFree-latest.apk \
