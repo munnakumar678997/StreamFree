@@ -54,6 +54,9 @@ jobs:
       - name: Build Debug APK
         run: |
           set -o pipefail
+          echo "--- agp version in catalog at runtime ---" | tee -a gradle-build.log
+          grep -n '^agp' gradle/libs.versions.toml | tee -a gradle-build.log
+          git rev-parse HEAD | tee -a gradle-build.log
           gradle assembleDebug --no-daemon --stacktrace \
             -Pandroid.useAndroidX=true \
             -Pandroid.nonTransitiveRClass=true \
