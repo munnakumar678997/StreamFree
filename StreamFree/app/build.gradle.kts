@@ -32,6 +32,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { viewBinding = true; buildConfig = true }
@@ -82,4 +83,6 @@ dependencies {
     implementation(libs.workmanager.ktx)
     // Settings
     implementation(libs.preference.ktx)
+    // Required by NewPipeExtractor (java.time usage) since minSdk < 33
+    coreLibraryDesugaring(libs.desugar.jdk.libs.nio)
 }
