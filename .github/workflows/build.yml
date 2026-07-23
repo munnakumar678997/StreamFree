@@ -73,18 +73,22 @@ jobs:
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
+          NOTES_FILE=$(mktemp)
+          cat > "$NOTES_FILE" <<EOF
+          🤖 **Auto-built from commit \`${SHORT_SHA}\`** — ${TIMESTAMP}
+
+          ### Install
+          1. Download **StreamFree-latest.apk** below ⬇️
+          2. Phone → Settings → **Unknown sources** → ON
+          3. Open APK → Install
+
+          ### Ad-blocking
+          Innertube ANDROID client — \`adPlacements\`/\`adSlots\` silently ignored.
+          SponsorBlock (sponsor/intro/outro skip) included.
+          EOF
           gh release create latest \
             --title "StreamFree Latest Build" \
-            --notes "🤖 **Auto-built from commit \`${SHORT_SHA}\`** — ${TIMESTAMP}
-
-### Install
-1. Download **StreamFree-latest.apk** below ⬇️
-2. Phone → Settings → **Unknown sources** → ON
-3. Open APK → Install
-
-### Ad-blocking
-Innertube ANDROID client — \`adPlacements\`/\`adSlots\` silently ignored.
-SponsorBlock (sponsor/intro/outro skip) included." \
+            --notes-file "$NOTES_FILE" \
             --prerelease \
             release/StreamFree-latest.apk \
             "release/${{ env.APK_NAME }}"
