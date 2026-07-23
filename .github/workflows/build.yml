@@ -37,7 +37,19 @@ jobs:
 
       # ── 4. Build Debug APK ────────────────────────────────────────────────
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee gradle-build.log
+
+      # ── 4b. TEMP DEBUG: push build log on failure ──────────────────────────
+      - name: Upload build log on failure
+        if: failure()
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          git config user.name "StreamFree Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git checkout -B debug-logs
+          git add -f StreamFree/gradle-build.log
+          git commit -m "debug: build log for ${{ github.sha }}"
+          git push -f origin debug-logs
 
       # ── 5. Rename APK ─────────────────────────────────────────────────────
       - name: Rename APK
