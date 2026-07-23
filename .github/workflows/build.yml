@@ -39,7 +39,23 @@ jobs:
       - name: Build Debug APK
         run: gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee gradle-build.log
 
-      # ── 4b. TEMP DEBUG: push build log on failure ──────────────────────────
+      # ── 5. Rename APK ─────────────────────────────────────────────────────
+      - name: Rename APK
+        run: |
+          set -x
+          mkdir -p release
+          echo "--- searching for apk files ---" | tee -a gradle-build.log
+          find app/build/outputs -iname "*.apk" 2>&1 | tee -a gradle-build.log
+          ls -la app/build/outputs/apk 2>&1 | tee -a gradle-build.log || true
+          ls -la app/build/outputs/apk/debug 2>&1 | tee -a gradle-build.log || true
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          cp app/build/outputs/apk/debug/app-debug.apk \
+             release/StreamFree-debug-${SHORT_SHA}.apk
+          cp release/StreamFree-debug-${SHORT_SHA}.apk \
+             release/StreamFree-latest.apk
+          echo "APK_NAME=StreamFree-debug-${SHORT_SHA}.apk" >> $GITHUB_ENV
+
+      # ── 5b. TEMP DEBUG: push build log on failure ──────────────────────────
       - name: Upload build log on failure
         if: failure()
         run: |
@@ -50,17 +66,6 @@ jobs:
           git add -f StreamFree/gradle-build.log
           git commit -m "debug: build log for ${{ github.sha }}"
           git push -f origin debug-logs
-
-      # ── 5. Rename APK ─────────────────────────────────────────────────────
-      - name: Rename APK
-        run: |
-          mkdir -p release
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          cp app/build/outputs/apk/debug/app-debug.apk \
-             release/StreamFree-debug-${SHORT_SHA}.apk
-          cp release/StreamFree-debug-${SHORT_SHA}.apk \
-             release/StreamFree-latest.apk
-          echo "APK_NAME=StreamFree-debug-${SHORT_SHA}.apk" >> $GITHUB_ENV
 
       # ── 6. Upload artifact (90-day retention) ─────────────────────────────
       - name: Upload APK artifact
