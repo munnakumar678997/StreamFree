@@ -11,6 +11,9 @@ jobs:
   build:
     name: Build Debug APK
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: StreamFree
 
     steps:
       # ── 1. Checkout ────────────────────────────────────────────────────────
@@ -23,43 +26,20 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
-      # ── 3. Download gradle-wrapper.jar (binary — not stored in repo) ───────
-      - name: Download gradle-wrapper.jar
-        run: |
-          mkdir -p gradle/wrapper
-          curl -fsSL \
-            "https://raw.githubusercontent.com/gradle/gradle/v8.11.1/gradle/wrapper/gradle-wrapper.jar" \
-            -o gradle/wrapper/gradle-wrapper.jar || \
-          curl -fsSL \
-            "https://github.com/gradle/gradle/raw/v8.11.1/gradle/wrapper/gradle-wrapper.jar" \
-            -o gradle/wrapper/gradle-wrapper.jar || \
-          (
-            # Fallback: bootstrap via system gradle
-            sudo apt-get install -y gradle -q 2>/dev/null || true
-            gradle wrapper --gradle-version 8.11.1 --distribution-type bin 2>/dev/null || true
-          )
-
-      # ── 4. Gradle cache ────────────────────────────────────────────────────
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      # ── 3. Set up Gradle (auto-provisions Gradle itself, no wrapper jar needed) ──
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
-          restore-keys: gradle-${{ runner.os }}-
+          gradle-version: 8.11.1
+          build-scan-publish: false
+          cache-read-only: false
 
-      # ── 5. Make gradlew executable ─────────────────────────────────────────
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      # ── 6. Build Debug APK ─────────────────────────────────────────────────
+      # ── 4. Build Debug APK ────────────────────────────────────────────────
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: gradle assembleDebug --no-daemon --stacktrace
 
-      # ── 7. Rename APK ──────────────────────────────────────────────────────
+      # ── 5. Rename APK ─────────────────────────────────────────────────────
       - name: Rename APK
         run: |
           mkdir -p release
@@ -70,22 +50,22 @@ jobs:
              release/StreamFree-latest.apk
           echo "APK_NAME=StreamFree-debug-${SHORT_SHA}.apk" >> $GITHUB_ENV
 
-      # ── 8. Upload artifact (90-day retention) ─────────────────────────────
+      # ── 6. Upload artifact (90-day retention) ─────────────────────────────
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: StreamFree-APK
-          path: release/StreamFree-latest.apk
+          path: StreamFree/release/StreamFree-latest.apk
           retention-days: 90
 
-      # ── 9. Delete old "latest" release ────────────────────────────────────
+      # ── 7. Delete old "latest" release ────────────────────────────────────
       - name: Delete old latest release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release delete latest --cleanup-tag --yes || true
 
-      # ── 10. Create new "latest" GitHub Release ────────────────────────────
+      # ── 8. Create new "latest" GitHub Release ──────────────────────────────
       - name: Create GitHub Release
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         env:
