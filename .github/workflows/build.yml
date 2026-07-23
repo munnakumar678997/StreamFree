@@ -41,16 +41,20 @@ jobs:
       # ── 3b. TEMP DEBUG: confirm gradle.properties content on the runner ────
       - name: Debug - show gradle.properties
         run: |
-          echo "pwd:"; pwd
-          echo "--- gradle.properties ---"
-          cat gradle.properties || echo "FILE MISSING"
-          echo "--- gradle -q properties (androidx) ---"
+          {
+            echo "pwd:"; pwd
+            echo "--- gradle.properties ---"
+            cat gradle.properties || echo "FILE MISSING"
+            echo "--- ls -la ---"
+            ls -la
+            echo "--- END DEBUG ---"
+          } | tee gradle-build.log
 
       # ── 4. Build Debug APK ────────────────────────────────────────────────
       - name: Build Debug APK
         run: |
           set -o pipefail
-          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee gradle-build.log
+          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee -a gradle-build.log
 
       # ── 5. Rename APK ─────────────────────────────────────────────────────
       - name: Rename APK
