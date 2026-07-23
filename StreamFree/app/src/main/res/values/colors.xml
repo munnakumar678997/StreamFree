@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand colors -->
+    <color name="colorPrimary">#FF0000</color>
+    <color name="colorPrimaryDark">#CC0000</color>
+    <color name="colorPrimaryVariant">#B71C1C</color>
+    <color name="colorSecondary">#1E1E1E</color>
+    <color name="colorBackground">#121212</color>
+    <color name="colorSurface">#1E1E1E</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorOnBackground">#FFFFFF</color>
+    <color name="colorOnSurface">#FFFFFF</color>
+
+    <!-- Utility -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="overlay_dark">#80000000</color>
+
+    <!-- SponsorBlock green -->
+    <color name="sponsorblock_green">#00AA44</color>
+
+    <!-- Light theme -->
+    <color name="colorPrimaryLight">#FF0000</color>
+    <color name="colorBackgroundLight">#FAFAFA</color>
+    <color name="colorSurfaceLight">#FFFFFF</color>
+</resources>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:title="Playback">
+        <SwitchPreferenceCompat
+            android:key="pref_background_play"
+            android:title="Background Play"
+            android:summary="Keep playing when screen is off"
+            android:defaultValue="true" />
+        <ListPreference
+            android:key="pref_default_quality"
+            android:title="Default Quality"
+            android:entries="@array/quality_options"
+            android:entryValues="@array/quality_values"
+            android:defaultValue="best" />
+        <SwitchPreferenceCompat
+            android:key="pref_pip_on_home"
+            android:title="Auto PiP on Home"
+            android:summary="Enter PiP mode when pressing Home"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Privacy">
+        <SwitchPreferenceCompat
+            android:key="pref_save_history"
+            android:title="Save Watch History"
+            android:summary="Store viewed videos locally"
+            android:defaultValue="true" />
+        <Preference
+            android:key="pref_clear_history"
+            android:title="Clear Watch History" />
+        <Preference
+            android:key="pref_clear_cache"
+            android:title="Clear Cache" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="SponsorBlock">
+        <SwitchPreferenceCompat
+            android:key="pref_sponsorblock_enabled"
+            android:title="Enable SponsorBlock"
+            android:summary="Skip sponsor segments automatically"
+            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+            android:key="pref_skip_intros"
+            android:title="Skip Intros"
+            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+            android:key="pref_skip_outros"
+            android:title="Skip Outros"
+            android:defaultValue="true" />
+        <SwitchPreferenceCompat
+            android:key="pref_skip_selfpromo"
+            android:title="Skip Self-Promotion"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Downloads">
+        <ListPreference
+            android:key="pref_download_location"
+            android:title="Download Location"
+            android:summary="Where to save downloaded files" />
+        <SwitchPreferenceCompat
+            android:key="pref_download_wifi_only"
+            android:title="Download on Wi-Fi Only"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Appearance">
+        <ListPreference
+            android:key="pref_theme"
+            android:title="Theme"
+            android:entries="@array/theme_options"
+            android:entryValues="@array/theme_values"
+            android:defaultValue="dark" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
