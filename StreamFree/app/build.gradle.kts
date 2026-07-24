@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.navigation.safeargs)
 }
 
 android {
@@ -68,6 +69,7 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     implementation(libs.room.rxjava3)
+    implementation(libs.lifecycle.reactivestreams.ktx)
     kapt(libs.room.compiler)
     // Koin DI
     implementation(libs.koin.android)

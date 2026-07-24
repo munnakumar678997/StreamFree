@@ -96,7 +96,7 @@ class PlayerActivity : AppCompatActivity() {
                         label = vs.resolution ?: "Unknown",
                         url = vs.content ?: "",
                         mimeType = vs.format?.mimeType ?: "video/mp4",
-                        bitrate = vs.averageBitrate,
+                        bitrate = vs.bitrate,
                         height = vs.height,
                         width = vs.width,
                         fps = vs.fps,

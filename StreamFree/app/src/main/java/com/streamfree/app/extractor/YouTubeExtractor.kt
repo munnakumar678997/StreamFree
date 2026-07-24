@@ -33,7 +33,7 @@ object YouTubeExtractor {
                 VideoItem(
                     videoId = extractVideoId(item.url),
                     title = item.name,
-                    thumbnailUrl = item.thumbnailUrl ?: "",
+                    thumbnailUrl = item.thumbnails.maxByOrNull { it.height }?.url ?: "",
                     uploaderName = item.uploaderName ?: "",
                     viewCount = item.viewCount,
                     duration = item.duration,
@@ -60,7 +60,7 @@ object YouTubeExtractor {
                 VideoItem(
                     videoId = extractVideoId(item.url),
                     title = item.name,
-                    thumbnailUrl = item.thumbnailUrl ?: "",
+                    thumbnailUrl = item.thumbnails.maxByOrNull { it.height }?.url ?: "",
                     uploaderName = item.uploaderName ?: "",
                     viewCount = item.viewCount,
                     duration = item.duration,
