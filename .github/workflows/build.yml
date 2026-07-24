@@ -36,7 +36,7 @@ jobs:
         with:
           gradle-version: 8.11.1
           build-scan-publish: false
-          cache-read-only: false
+          cache-disabled: true
 
       # ── 3b. TEMP DEBUG: confirm gradle.properties content on the runner ────
       - name: Debug - show gradle.properties
@@ -57,7 +57,7 @@ jobs:
           echo "--- agp version in catalog at runtime ---" | tee -a gradle-build.log
           grep -n '^agp' gradle/libs.versions.toml | tee -a gradle-build.log
           git rev-parse HEAD | tee -a gradle-build.log
-          gradle assembleDebug --no-daemon --stacktrace \
+          gradle assembleDebug --no-daemon --stacktrace --no-build-cache \
             -Pandroid.useAndroidX=true \
             -Pandroid.nonTransitiveRClass=true \
             2>&1 | tee -a gradle-build.log
