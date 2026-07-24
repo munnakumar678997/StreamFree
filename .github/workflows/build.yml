@@ -40,59 +40,29 @@ jobs:
         with:
           gradle-version: 8.11.1
           build-scan-publish: false
-          cache-disabled: true
-
-      # ── 3b. TEMP DEBUG: confirm gradle.properties content on the runner ────
-      - name: Debug - show gradle.properties
-        run: |
-          {
-            echo "pwd:"; pwd
-            echo "--- gradle.properties ---"
-            cat gradle.properties || echo "FILE MISSING"
-            echo "--- ls -la ---"
-            ls -la
-            echo "--- END DEBUG ---"
-          } | tee gradle-build.log
+          cache-read-only: false
 
       # ── 4. Build Debug APK ────────────────────────────────────────────────
+      # --no-build-cache: avoids reusing stale task outputs across pushes
+      # (dependency download caching from step 3 above still applies, so
+      # this stays fast without the correctness risk of the task cache).
       - name: Build Debug APK
         run: |
           set -o pipefail
-          echo "--- agp version in catalog at runtime ---" | tee -a gradle-build.log
-          grep -n '^agp' gradle/libs.versions.toml | tee -a gradle-build.log
-          git rev-parse HEAD | tee -a gradle-build.log
           gradle assembleDebug --no-daemon --stacktrace --no-build-cache \
             -Pandroid.useAndroidX=true \
-            -Pandroid.nonTransitiveRClass=true \
-            2>&1 | tee -a gradle-build.log
+            -Pandroid.nonTransitiveRClass=true
 
       # ── 5. Rename APK ─────────────────────────────────────────────────────
       - name: Rename APK
         run: |
-          set -x
           mkdir -p release
-          echo "--- searching for apk files ---" | tee -a gradle-build.log
-          find app/build/outputs -iname "*.apk" 2>&1 | tee -a gradle-build.log
-          ls -la app/build/outputs/apk 2>&1 | tee -a gradle-build.log || true
-          ls -la app/build/outputs/apk/debug 2>&1 | tee -a gradle-build.log || true
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           cp app/build/outputs/apk/debug/app-debug.apk \
              release/StreamFree-debug-${SHORT_SHA}.apk
           cp release/StreamFree-debug-${SHORT_SHA}.apk \
              release/StreamFree-latest.apk
           echo "APK_NAME=StreamFree-debug-${SHORT_SHA}.apk" >> $GITHUB_ENV
-
-      # ── 5b. TEMP DEBUG: push build log on failure ──────────────────────────
-      - name: Upload build log on failure
-        if: failure()
-        run: |
-          cd "$GITHUB_WORKSPACE"
-          git config user.name "StreamFree Bot"
-          git config user.email "actions@users.noreply.github.com"
-          git checkout -B debug-logs
-          git add -f StreamFree/gradle-build.log
-          git commit -m "debug: build log for ${{ github.sha }}"
-          git push -f origin debug-logs
 
       # ── 6. Upload artifact (90-day retention) ─────────────────────────────
       - name: Upload APK artifact
