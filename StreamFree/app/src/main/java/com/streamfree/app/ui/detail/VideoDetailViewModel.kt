@@ -79,7 +79,7 @@ class VideoDetailViewModel(
                 _viewCount.value    = formatViews(info.viewCount)
                 _likes.value        = formatCount(info.likeCount)
                 _description.value  = info.description?.content ?: ""
-                _thumbnailUrl.value = info.thumbnailUrl ?: "https://i.ytimg.com/vi/$videoId/maxresdefault.jpg"
+                _thumbnailUrl.value = info.thumbnails.maxByOrNull { it.height }?.url ?: "https://i.ytimg.com/vi/$videoId/maxresdefault.jpg"
 
                 checkSubscription()
                 checkBookmark()
@@ -115,7 +115,7 @@ class VideoDetailViewModel(
         historyDao.insert(HistoryEntity(
             videoId = videoId,
             title = info.name,
-            thumbnailUrl = info.thumbnailUrl ?: "",
+            thumbnailUrl = info.thumbnails.maxByOrNull { it.height }?.url ?: "",
             uploaderName = info.uploaderName,
             duration = info.duration
         ))
